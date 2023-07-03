@@ -57,3 +57,23 @@ put this in a file (say - urbitStart.sh) stored in the urbit root folder, and po
 
 11) Test that your can access your ship from the external internet, with `http://<your ext ip address>:<your chosen port number>`
 12) Done!
+
+
+## Setting up Development Environment.
+
+VS Studio Code for linux is used, with the Hoon and Hoon Assist exensions used. [Fake Ships]() are used to test code snippits.
+
+To set-up a fake ship, run the following command in the directory where the urbit binary resides:
+
+```
+./urbit -F zod
+```
+
+Running your fakeship:
+
+```
+./urbit /path/tofakeship/...
+
+```
+
+Remember to make a copy of oyur fakeship with the copy (cp) command!

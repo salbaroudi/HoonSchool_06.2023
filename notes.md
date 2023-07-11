@@ -224,9 +224,11 @@ and c as a formula (?)
 - Limbs: Are parts of the Binary Tree.
 - Wings: Are combinations of limbs of the Binary Tree.
 
-- Hoon Code Formatting:
+### Hoon Code Syntax:
 
-1) Tall Code: This is the underlying (basic) form of code. It can be written two ways. With double+ spaces, or line breaks. For example:
+### Tall Code: 
+
+This is the underlying (basic) form of code. It can be written two ways. With double+ spaces, or line breaks. For example:
 
 ```
 :-  1  :-  2  3
@@ -240,23 +242,167 @@ OR
 3
 ```
 
-2) Wide Code: Similarly, this is written with Parens, and uses single spaces:
+#### Wide Code: 
+
+- Similarly, this is written with Parens, and uses single spaces:
 
 ```
 :-(p q)
 ```
 
-3) Sugar Code:
+- Note, that much like composed functions, chained wide code nests inside of itself. For example:
 
 ```
-[p q]
+=>(['dog' ['cat' ['snake' 'mouse']]] =.(-.+7 'platypus' =+('echidna' .)))
 ```
+
+- For gates, wide code is written as follows:
+
+```
+%-  sub  [4 1]
+
+(sub [4 1])
+
+```
+
+#### Sugar Code:
+
+Many runes have there own form of sugar syntax. Note that it can be a bit ideosyncratic (just check the [rune reference](https://developers.urbit.org/reference/hoon/rune))
+
+- Example: The coltar (:*) rune, can form a tuple from any number of arguments. Equivalent sugar syntax is seen below:
+
+```
+:*  1  2  3  4  5  6 ==
+
+[1 2 3 4 5 6]
+
+```
+
 - Note that Wide and Sugar code can be substituted into Tall code, but Tall code cannot be substituted into the other two.
     - guess: this is because tall code is not delimited, but Wide and Sugar are (parsing errors).
 
+### More Cen (%) Runes, for calling Gates:
 
+- cenhep (%- ): Calls a gate with one argument. 
+    - Usage: `%-  add  :-  4  1`  or `%-(add :-(4 1))` or `(add 4 1)`
+- cenlus (%+): Calls a gate with two arguments.
+    - Usage: `%-  add  4  1`  or `%-(add 4 1)` or `(add 4 1)`
+
+
+### More on Hoon and Nock:
+
+- for unbounded lists of children, use tistis (==) when using Tall Form.
+
+- Running Nock Code: Use the dot-tar .* rune. Syntax: `.* <nock subjet> <nock formula>` 
+
+- Hoon and Nock are interrelated. Consider the tis-gar rune: this **sets the subject** and then runs expressions on it.
+    - ` =>  <subject> <code to evaluate against subject>`.
+    - Note that this replaces the global binary tree with whatever subject you set. So you can't run gates with this. For example:
+    `=>  [a=1 b=2]  =.  a  100  %-  add  [a 1]` will fail! Because *add* is in the global urbit tree.
+    - To solve this limitation, use the tis-lus (=+) rune from HL1, and reference accordingly.
+- Also consider the dot-tis rune: `.= <expr 1>  <expr 2>` 
+    - This rune runs both expressions (or formulas), and tests for equality. Doesn't have to be a nock expression. For example:
+    ```
+        .= 3 .+ 2
+
+        > %.y
+    ```
+- Together, these two runes (chained), do the same thing as the .* rune.
+
+- Two Equivalent Statements:
+```
+.*  [50 [8 9]]  [5 [[0 2] [0 6]]]
+
+=>  [50 [8 9]]  .=  +2  +6
+
+```
+- tis-gar (=>) and tis-gal (=<): Both of these compose two juxtaposed expressions. Tis-gal just does it from back to front, and will produce the same result (if the inputs are reversed).
+
+- As we learned in HL1, tislus (=+) pins something to the head of a subject (+2 position), and moves an older subject to +3.
+
+- tis-dot (.=) Rune: Allows us to select something from a subject, modify it, and then run code against the new subject.
+    - ` =. <something in subject> <new val> <code expr>`
+    - Example: `=>  ['dog' ['cat' ['snake' 'mouse']]]  =.  -.+7  'platypus'  .`
+
+- Setting Faces (underlying code): Use kettis (^=). For example:
+
+```
+=<  a  :+  ^=  a  1  ^=  b  2  ^=  c  3
+
+Will generate [a=1 b=2 c=3] and return the value of a
+```
+
+
+
+- Hoon and Nock have a close relationship. Hoon is largely built over Nock, and operates under a Subject Oriented Programming Model
+
+- In Subject Oriented Programming, code is organized around entities that have relevance in the problem domain (to be solved). Compare this to OOP, which [krayonnz]:
+    - Use object containers, with properties and methods to act/store relevent problem data. Objects work with one another by being placed into hiearchy trees.
+    - With SOP, abstractions are typically higher level. There are also "viewpoints" or "perspectives", depending on the agent or user. [SOPwiki]
+    - with SOP, we abstract different "Subjects" and focus on them to operate in the problem domain/come to a solution.
+
+- In Hoon, all code is evaluated against a data context called "the subject", the subject is a binary tree (either the entire urbit running instance, or a wing/limb of it).
+
+### Casting with the Ket Family:
+
+- Every single data entity in Hoon can be represented as a positive integer (with the **empty/atom aura** '@'). More specialized types exist beyond this.
+- We use the ket family (^) to work with auras in Hoon.
+
+- kethp (^-): `^_ <type> <child>` Cast the child in the 2nd slot as the type listed in the first slot.
+    - If it cannot be cast, urbit crashes.
+    - this rune is used for basic type check+exception throwing, effectively.
+
+- Why do some types not convert over? You can only convert from @X to @Y if Y **nests** under X (**analogy:** is a subclass).
+
+    - *Easy way to infer nesting:* if the aura of type we are casting **to** has the letters of the aura we are casting **from** as a substring, we can guarentee a proper cast.
+    - Example: @ -> @t -> @ta   -> @tas, because previous auras are substrings of later auras.
+    - Example2: @t /-> @, however. This will fail.
+
+- if you try to cast improperly, Hoon will throw a nest-fail error.
+
+- So is it possible to convert types on one side of the tree to another? Yes, using the empty aura as an intermediate. - 
+
+- Recall that ` @ux 'hello' ` was able to cast to a hex integer last lecture. To do so, we use the following syntactic sugar which converts to the following tall code:
+
+```
+`@ux`'hello'
+^-  @ux  ^-  @  'hello'
+```
+
+- ketlus (^+): `^+ <child1> <child2>` Infer the type of child 1, and cast child2 as the same type.
+
+- kettar (^*): Takes a type as a child, and returns the "default value". Usage and sugar syntax below:
+
+```
+^*  @p
+*@p
+```
+
+#### Rune Familes:
+
+- bars (|): Produce cores.
+- bucs ($): Produce structures - custom types.
+- cens (%): allow for function calls in Hoon.
+- cols (:): help us produce cells.
+- dots (.): allow us to perform low level Nock Operations.
+- fases (/): allow for imports into Hoon.
+- kets (^): allow us to adjust types without violating type contraints.
+- mics (;): Makes, misc macros (?)
+- sigs (~): work with Nock 11 to pass non-semantic info to the interpreter (?)
+- tises (=): modify subjects.
+- wuts (?): used for program control and branching.
+- zaps (!): misc expressions (wildcard stuff).
+- terms (==): Used to terminate unbounded expressions (an interpreter hint).
+
+
+#### Limbs and Wings:
+
+- a limb is a name for a singular address in the subject.
+- a wing is a search path, that consists of one or more limbs strung togehter.
 
 
 ### References:
 
 [NockRules] https://developers.urbit.org/reference/nock/definition
+[krayonnz] https://www.krayonnz.com/user/doubts/detail/612dfdd8e621590040ef25a8/what-is-the-difference-between-subject-and-object-oriented-language
+[SOPwiki] https://en.wikipedia.org/wiki/Subject-oriented_programming

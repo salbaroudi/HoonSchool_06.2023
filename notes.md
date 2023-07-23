@@ -348,7 +348,7 @@ Will generate [a=1 b=2 c=3] and return the value of a
 - Every single data entity in Hoon can be represented as a positive integer (with the **empty/atom aura** '@'). More specialized types exist beyond this.
 - We use the ket family (^) to work with auras in Hoon.
 
-- kethp (^-): `^_ <type> <child>` Cast the child in the 2nd slot as the type listed in the first slot.
+- kethep (^-): `^_ <type> <child>` Cast the child in the 2nd slot as the type listed in the first slot.
     - If it cannot be cast, urbit crashes.
     - this rune is used for basic type check+exception throwing, effectively.
 
@@ -401,6 +401,183 @@ Will generate [a=1 b=2 c=3] and return the value of a
 - a wing is a search path, that consists of one or more limbs strung togehter.
 
 
+## Week 3: Molds and Program Control:
+
+- Molds are more complex structures (like Struct data types).
+    - Instead of atomistic data types (@p, @ud...), we can make composite structures of atomic types.
+
+- kethep (^-): Last time, we learned this rune to convert a value to a given type. For example: `^-  @ud  %-  add  [1 2]`. This expects a type in the first slot. Note: Hoon interpreter enters structure mode when the first arg is hit.
+
+### Structure vs Value Mode:
+
+
+- Hoon parser has a "structure mode" and "value mode": "structure mode" interprets a type specification, instead of computing a value expression.
+
+- tis-fas (=/): Combines a named noun with subject, with possible type annotation. Usage: `=/ name=@type  <val>  <selector>`
+
+- We can set type information to our face pinning operations. For example: `=/  word=@t  'hello'  word`.
+    - This is actually syntactic sugar, for the buc-tis rune:  `word=@t` ==> `$=  word  @t`
+    - =/ does not reduce to `$=`, its inner expression does (!)
+
+- buc-tis (`$=`): Pin a face to a type, (uses structure mode). Usage:  `$=  <facename>  <@type>`
+    - Compare kettis (^=): **which is done in value mode.**
+    - (**)
+
+- Comparing ket-tis (value mode) vs tisfas (structure mode):
+    - [word='hello'  num=2] desugars to `^=  word hello`.
+    - =/  word=@t  'hello'  word desugars to `$=  word  @t`
+    - **Distinction:**, kets deal with values, and bucs deal with types.
+
+### Building and Using Simple Molds: Banking App.
+
+- buctis (`$=`): Recall this pins a face to a type
+- buccol (`$:`): Takes an indef.number of children, and each child is a specification of a type. This creates a composite type structure which is represented as a cell. Usage:
+
+```
+=bankaccount  $:  $=  ship  @p  $=  money  @rs  == 
+```
+
+Note that we can use this mould, to create a cell with values. The following are all equivalent:
+
+```
+(1) `bankaccount`[~zod .123456.78]
+
+
+(2) ^-  bankaccount  [~zod .123456.78]
+
+
+(3) ^-  $:  $=  ship  @p  $=  money  @rs  ==  [~zod .123456.78]
+```
+
+- Note that (1) desugars to (2), and (3) is us just slapping in our mould definition in-line. That also works.
+- How does the Hoon interpreter build our bankaccount cell?
+    - It checks the first position of the mold, and sees an @p (ship). It then checks the first position of the value (~zod). @p nests in @p, so it populates the first value of the cell. It does a similar matching for the second type.
+
+### Casting v.s Molding:
+
+- moulds can be called as gates. In fact, moulds are a subset of gates (!!).
+- Conundrum: When we call:  `^- bankaccount ['hello'  .12345]` it fails, because our first value (@t) does not nest with an @p ship name. Yet we can call: `%-  bankaccount ['hello'  .12345]` and it works. Why?
+    - When molds are called as gates, input cells are treated as raw nouns (@'s) with empty auras, so our atoms can be fit to any type possible. If we do this however, our information (usually) gets garbled.
+- Note the Differences Between Casting and Molding:
+    - **Casting:**
+        - Usage: `^-  <type>  <hoon value expr>`
+        - Checks the result of <hoon value expr> element-wise, with the <type> mold, to see if the types nest.
+        - Will fail with a *nest-fail* error if nesting is wrong
+        - Occurs at **compile time**
+        - Used to check for type errors in blocks of code.
+    - **Molding**
+        - Usage: `%-  <type>  <hoon value expr>`
+        - Coerces the results of the expression to the types of mymold (all values are empty auras).
+        - Occurs at **Run Time**. Never throws errors.
+        - May cause RT errors, or other unintended side-effects, or garble our information (!!)
+
+
+### Type Unions:
+- Type Unions made with bucwut ($?). Usage `$? <spec 1>  <spec 2>  <spec 3> ... ==  `
+- Note, if we try to fence (^-) a value with a type union, it will always pass, and be converted to the last listed type.
+- Example Usage:
+
+```
+=newtype  $?  @t  @rs  @da  ==
+
+If you run:
+
+^-  newtype   .123.45
+
+It will pass and cast as a date (!!)
+
+```
+- In Practice: Type unions are used with **terms**.
+    - A term is a constant with aura @tas, and is considered a unique type in itself (it is its only instance).
+    - Example Definition:  `=reptile  $?  %snake  %lizard  %croc`. Only these three will pass when called, and be cast as one of the terms.
+    - Example Casting:  `^- reptile  %snake`
+    - Example Molding: `%-  reptile 110.442.424.461.676`. This becomes a %lizard, as the underlying raw number represents an @tas of value %lizard...
+-
+
+### Program Control: Branching:
+
+- wutcol (?:). This is our IF THEN ELSE statement.  Usage: `?: <condition>  <True expr>  <False expr>`
+- for program control, the wut (?) family of runes is used.
+- wutsig (?~): Branches on null. Specifically, if the branching expression evals to null (~) it will take the first branch. If not, it takes the second.
+    - Usage:  `?~  <expr>  <branch1>  <branch2>`
+- wuthep (?-): Acts as a switch statement. Takes an argument,and tries to match it to one of the cases:
+    - Tall Form:
+    ```
+    ?-  <argument>
+        <noun1>  <expr1>
+        <noun2>  <expr2>
+        <noun3>  <expr3>
+        ...
+        ==
+    ```
+- wutlus (?+): Another kind of switch statement, with a 'default' or 'else' case at the top. For only specifying cases for some values.
+    - Tall Form:
+    ```
+    ?+  <argument>
+        <default expr1>
+        <noun1>  <expr1>
+        <noun2>  <expr2>
+        ...
+        ==
+    ```
+- mint-vain error: The compiler is telling you that you have branches that will never be taken (extraneous)
+
+### Logical Operators:
+
+- Hoon has the usual operators (Not, And, Or..). These are actual runes. Usage below:
+    - And Operator (?&):
+        - Tall Form:  `?& <pred1> <pred2> <pred3> ... ==`
+        - Sugar Form:  `&(<pred1> <pred2> <pred3>)`
+    - For OR, syntax is the same as AND, but with pipe symbol (|)
+    - Not Operator (?|):
+        - Tall Form:  `?! <predicate>`
+        - Sugar Form: `!<predicate>`
+
+### Comparison Operators:
+
+- These are two input gates. The usual numeric operators are included (gt, lt, lte...).
+- General format for usage, below:
+    - Tall Form:  `%+  gth  x  y`
+    - Sugar Form:  `(gth x y)`
+- Remember: The full urbit tree must be available in local subject, your you will get a mint-vane error (gate not found).
+
+- Recall the dottis rune, which compares two nouns:  `.=  <expr1>  <expr2> `
+    - Sugar Syntax:  `=(x y)`
+    - Will ignore type information, and just test for equality between nouns.
+
+
+## Week 4:
+
+- big topic for today is lists!
+- a list in hoon is a structure where each cell has the same datatype, but is not of a fixed length.
+- you will need data types that dont know in advance how many slots they need. This is what lists are for.
+
+- A list is a null-terminated tuple. If you make a list that is terminated by sig, it *can* be a list. You must cast it to a list to make Hoon understand
+
+- list is a mold maker gate.
+
+- lest is a list that is non-null.
+
+- access head and tail, respectively:  `i.a , t.a`
+
+- The empty list is just sig (~).
+
+- adding to the head of a list:  `=.  mylist  :-  1  mylist`
+
+- text can be represented as @t (cord), @ta (knot), @tas (term) and as a list (which allows for string manipulations)
+
+- all text is delimited with single quotes. We delimit with double quotes when we are using the *tape* data structure.
+
+- what are tapes for? They are lists internally. They use 6x as much storage (!!)
+
+## Residual Questions:
+
+
+
+- When do we know when to use value vs structure mode.
+- (**) Then: We would not use buc-tis in a value expression, as this could cause confusion for the hoon parser? We place the buc-tis usage on its own line (??).
+- when we attempt moulding, and coerce values to a particular mold, is the type of the raw nouns just empty auras, or something else?
+- since we are dealing with lists and unbounded structures...are there pointers in hoon?
 ### References:
 
 [NockRules] https://developers.urbit.org/reference/nock/definition

@@ -77,3 +77,36 @@ Running your fakeship:
 ```
 
 Remember to make a copy of oyur fakeship with the copy (cp) command!
+
+
+## Coding Hoon Scripts, running them in Dojo:
+
+When developing Gall Apps, we need to have our own desks in our ship (on Mars). We write and develop on Earth (our local file system), and cart files over to Mars (on a desk in our ship).
+
+- Mount a desk:  `|mount  %deskname`
+- Unmount a desk: `|unmount %deskname`
+
+- For development, I will use a desk called %galldesk or %alfa
+
+### Commiting code and running it:
+
+1) Mount the appropriate desk in the Dojo console. You can generate a new one with: `|merge  %newdesk our %base`
+2) Update the desk.bill file in ./zod/alfa desk folder:
+
+```
+$ cd zod/alfa
+$ echo "~[%alfa]" > desk.bill
+```
+
+3) Place your testcode in /zod/alfa/app folder with a .hoon extension.
+
+4) Commit and boot:
+
+```
+> |commit %alfa
+
+> |install our %alfa
+
+```
+
+

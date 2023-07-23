@@ -568,7 +568,9 @@ It will pass and cast as a date (!!)
 
 - all text is delimited with single quotes. We delimit with double quotes when we are using the *tape* data structure.
 
-- what are tapes for? They are lists internally. They use 6x as much storage (!!)
+- what are tapes for? They are lists internally. They use 6x as much storage (!!). But they allow for character level text manipulation.
+
+- We generally store data as cords, and when we work on them, convert them to tapes (transcription analogy...).
 
 ## Residual Questions:
 

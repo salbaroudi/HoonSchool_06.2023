@@ -548,19 +548,45 @@ It will pass and cast as a date (!!)
 
 ## Week 4:
 
-- big topic for today is lists!
-- a list in hoon is a structure where each cell has the same datatype, but is not of a fixed length.
-- you will need data types that dont know in advance how many slots they need. This is what lists are for.
+### Final Discussions on Style and Syntax Forms:
 
+- You select which form is appropriate given context. In general, we want good readability for ourselves, and other programmers.
+- Recall: You cannot use tall form in Wide or Sugar. You can use Wide or Sugar in each other, or in Tall form.
+- Runes Documentation will give hints to what preferred developer style is.
+    - Eventhough Tall form can be written on one line....for long expressions, this is rarely done.
+
+
+
+### On Lists:  
+
+- a list in hoon is a structure where each cell has the same datatype, but is not of a fixed length.
+- you will need data types that don't know in advance how many slots they need. **This is what lists are for.**
 - A list is a null-terminated tuple. If you make a list that is terminated by sig, it *can* be a list. You must cast it to a list to make Hoon understand
 
-- list is a mold maker gate.
+- all lists are a form of binary tree. Specifically, a rightward branching binary tree that is null-terminated. Really, they are a form of tuple that are terminated with a sig. Structurally, it looks like:
 
-- lest is a list that is non-null.
+```
+/  \
+1   /  \
+    2   /   \
+        3    /   \
+            4    ~
+
+[ 1 [2 [3[4 ~]]]]
+```
+- Can just manually enter a list with sugar syntax:  `~[1 2 3 4]` or `[1 2 3 4 ~]`
+- The empty list $\epsilon$ is just a sig (~).
+    - Exception: Only sig on its own is an empty list. Cells of sigs are **not** lists.
+- a *lest* is a list that is non-null.
+    - Wordplay: Lest means "to intend to prevent something, or avoid the risk of". Lest we forget...
+- `list` is a mold maker gate.
+- Finally, Hoon will not assume a null terminated tuple is a list. You must use the list gate, or cast to a list explicitly.
+
+- Note the following line of code:  `^-  %-  list  @ud  [1 2 3 4 5 ~]`
+    - list is a **mold-maker gate** - it will take in an input, and output a typed list structure.
 
 - access head and tail, respectively:  `i.a , t.a`
 
-- The empty list is just sig (~).
 
 - adding to the head of a list:  `=.  mylist  :-  1  mylist`
 

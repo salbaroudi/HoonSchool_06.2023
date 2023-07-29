@@ -577,26 +577,112 @@ It will pass and cast as a date (!!)
 - Can just manually enter a list with sugar syntax:  `~[1 2 3 4]` or `[1 2 3 4 ~]`
 - The empty list $\epsilon$ is just a sig (~).
     - Exception: Only sig on its own is an empty list. Cells of sigs are **not** lists.
-- a *lest* is a list that is non-null.
-    - Wordplay: Lest means "to intend to prevent something, or avoid the risk of". Lest we forget...
 - `list` is a mold maker gate.
 - Finally, Hoon will not assume a null terminated tuple is a list. You must use the list gate, or cast to a list explicitly.
 
 - Note the following line of code:  `^-  %-  list  @ud  [1 2 3 4 5 ~]`
     - list is a **mold-maker gate** - it will take in an input, and output a typed list structure.
+    - so `list  @ud` on its own is like a partial function, that will accept an input [1 2 3 ...] and output a list structure.
 
+- Prepending to a List: Is easier than adding to the tail (O(1) vs O(n) time). Example Code (Sugar):
+```
+=/  mylist=(list @ud)  [2 3 4 ~]
+  ^-  (list @ud)  :-  1  mylist
+```
+- Note: THe (list @ud) type coersion (line 2) is necessary, else we will get a cell with a 1 in one slot, and mylist. This will be list shaped, but not interpreted as a list!
+
+- a *lest* is a list that is non-null.
+    - Wordplay: Lest means "to intend to prevent something, or avoid the risk of". Lest we forget...
+    - `lest`, like `list`, is a mold-maker gate as well. You can cast any non-empty list as a lest. Lest will also pin faces i and t to the head and tail of the inputted list. Example Code:
+    - Note: Running *lest* on ~ will return an eror.
+
+```
+> ^-  %-  lest  @ud  [1 2 3 4 5 ~]
+[i=1 t=~[2 3 4 5]]
+
+```
 - access head and tail, respectively:  `i.a , t.a`
+    - You need a =/ rune so that these faces are locally stored, else you will get an error. For example:
+
+```
+=/  starlist  `(lest @p)`[~sonnet ~winter ~diglet ~ponnys ~]
+t.starlist
+```
+
+### List Library Functions:
+- Warning: Some functions require "proof" [P!] that a null termed tuple is a list, and others will just accept it without explicityly stating the type. It is never clear which function is which, so check the [documentation](https://developers.urbit.org/reference/hoon/stdlib/2b).
+
+- How can we explicitly prove a null-terminated tuple is a list? 
+    - You can always cast it in line:  `^-  list @ud  ~[1 2 3 4...]`
+    - Use the `limo` gate. Limo doesn't need to know the inner type, so its a bit shorter.
+        - Usage (Example): `%+  snag  1  (limo  ['dog' 'cat' ~])`
+- Below is a selection of useful gates that work on lists:
+    - **flop:** Take a list, and reverse it. Usage: ` %-  flop  [1 2 3 4 ~]`
+    - **gulf:**  Return a range bounded between a and b: Both a and b are included in the range (closed) 
+        - Usage:  `%+  gulf  a  b`
+    - **lent** Return the lenght of a list. Usage:  `%-  lent  [1 2 3 ~]`
+    - **sort**: Two arg gate that takes in an uncast list, and a comparison operator.
+        - Usage `%+  sort  [1 5 3 8 2 ~]  gth` 
+    - weld: concats two lists. No need for proof.  `weld  [1 2 ~]  [3 4 ~]`
 
 
-- adding to the head of a list:  `=.  mylist  :-  1  mylist`
+### Map-Apply-Filter like gates:
 
-- text can be represented as @t (cord), @ta (knot), @tas (term) and as a list (which allows for string manipulations)
+1) turn (map): applies a gate to each element in a list, and outputs a list.
+    - Example:
+    ```
+    > %+  turn  [1 2 3 4 ~]  dec
+    ~[0 1 2 3]
 
+    ```
+
+2) roll (reduce) [P!]: Applies a gate to each argument, and accumulates the result. Outputs the accumulated result.
+    - Example:  
+    ```
+    %+  roll (limo [1 1 1 1 ~]) add
+
+    > 4
+    ```
+3) skim (filter)[P!]: Applies a truth statement to each element, and returns a list of elements that made the test statement true.
+- Example:
+```
+> =/  is-even  |=(a=@ud =((mod a 2) 0))
+  %+  skim  `(list @ud)`[1 2 3 4 5 6 7 8 9 10 ~]  is-even
+[i=2 t=~[4 6 8 10]]
+
+```
+
+### Text:  Cords, Knots, Terms and Tapes:
+
+- text can be represented as @t (cord), @ta (knot), @tas (term) and as a list (*tape* - which allows for string manipulations)
 - all text is delimited with single quotes. We delimit with double quotes when we are using the *tape* data structure.
-
 - what are tapes for? They are lists internally. They use 6x as much storage (!!). But they allow for character level text manipulation.
-
 - We generally store data as cords, and when we work on them, convert them to tapes (transcription analogy...).
+
+- Formatting/Restrictions of each Type:
+    - Cord (@t): Any UTF-8 symbol
+    - Tape (list @tD): Any UTF-8 symbol
+    - Knot: Restricted, lowercase letters, numbers and "- ~ _ .". Used for system labels, mostly.
+    - Term: Restricted, lc letters, numbers and "-" only.
+
+#### Tapes:
+
+- Recall tapes are actually lists. Each element in the list is a special @tD (an @t limited to 8 bits of representational data). 
+- In hoon, `tape` means the same thing as the following mold:  `(list  @tD)`
+    - Same thing:  `^-  tape ...` and `^-  (list  @tD) ...`
+- **crip**: "Cord rip". Convert a tape into a cord.
+- **trip**: "Tape Rip". Convert a cord into a tape.
+
+- There are lots of gates that manipulate tapes, just as we have for cords.
+
+- Tape Interpolation:
+    - Use angle brackets to convert the result of a hoon expression into a tape.
+    - Use curly brackets to interpolate in a tape string.
+    - Combined Example:
+        ```
+            =/  x  5
+            "Our sum is:  {<(add x 6)>}"
+        ```
 
 ## Residual Questions:
 

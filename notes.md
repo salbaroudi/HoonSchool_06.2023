@@ -684,9 +684,35 @@ t.starlist
             "Our sum is:  {<(add x 6)>}"
         ```
 
+## Week 5:
+
+- cores are a programming pattern!
+    - store code as data.
+- a core is a cell that has [code-as-data  data-as-data]
+    - a core is a cell of [battery payload].
+    - using =+, our pattern becomes [battery  sample  context]
+- Arms: Named addresses where code is stored.
+- Cores made with Bars (|)
+- luslus ++ defines an arm of the core.
+- 
+- gates are built from cores.
+
+```
+|%
+
+++
+
+++ 
+
+--
+
+```
+
+- A door is a core with a sample pinned to the head of the subject. We use cencab (|_) to make a door.
+
 ## Residual Questions:
 
-
+- going up in scope: bad programming practice.
 
 - When do we know when to use value vs structure mode.
 - (**) Then: We would not use buc-tis in a value expression, as this could cause confusion for the hoon parser? We place the buc-tis usage on its own line (??).

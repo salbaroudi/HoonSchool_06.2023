@@ -686,29 +686,241 @@ t.starlist
 
 ## Week 5:
 
-- cores are a programming pattern!
-    - store code as data.
+### Introductory Ideas:
+
+- cores are a programming pattern.
+    - they store code as data.
+    - specifically, this means uncomputed "arms", which are paths of computation that
+    can be called from a core.
 - a core is a cell that has [code-as-data  data-as-data]
-    - a core is a cell of [battery payload].
-    - using =+, our pattern becomes [battery  sample  context]
+    - a core is a cell of **[battery payload]**. If we choose to pin data to the head, our cells further specify to **[battery [sample context]]**.
+        - The battery is the stored code itself. The payload is the data we wish to operate on.
+    - In the end, its just another binary tree that we can nest in the Dojo binary tree.
+        - Code goes on the left (+2), data on the right (+3).
 - Arms: Named addresses where code is stored.
-- Cores made with Bars (|)
-- luslus ++ defines an arm of the core.
-- 
-- gates are built from cores.
+    - Arms consist of a face, and an expression to run.
+
+- Syntax:
+    - Cores made with Bars (|). We define a core with the barcen (|%) rune.
+    - luslus ++ defines an arm of the core.
+    - terminate definition with hephep --
+
+### Know the Difference! Subject Modification:
+
+Cores can be set as the subject, and act on subsets of the full Dojo subject. How these subject runes are used/differ is critically important to know:
+
+1) Tisgar (=>):
+    - Usage: `=>  <subject>  <expr>`
+    - Sets the subject/payload (read: the focus or a subset of the dojo tree), and runs a hoon expression against it.
+    - Use "." for the <expr> to just return the subject you set.
+
+2) Tislus (=+): Sets the subject *like* tisgar, with one additional feature: Adds a name or type face to the head of the dojo tree.
+    - Usage: `=+  <data or face>  <expr>`
+    - again, it sets the payload, and runs a hoon expression against it.
+
+3) Tisfas (=/): Sets the subject and places something at the head of the dojo tree (like tislus), and has a third slot to run more code.
+    - Usage:  `+/  <face or type>  <data>  <expr>`
+    - Will set data, a type or face setting, and place to tree. Will then run <expr> on the modified subject as well.
+    - Core Idea: We can chain tisfas'es to make frames of scoped variables, if we wish.
+    ```
+    =/ var1  <data> 
+        =/ var2 <data>
+            =/ var3 <data>
+                |%
+                ++ ...
+                ++ ...
+                --
+    ```
+
+[***] Of particular importance are tisgar (=>) and tisfas (=/), as we will see. Tisgar has a dereferencing behaviour, where as tisfas is used to make blocks of scoped code...
+
+### Defining and Using Cores:
+
+- use the bar-cen (|%) rune to set a core.
+    - Usage:  `|%  ++  face1  expr1  face2  expr2 ...  -- `
+
+- if you type a core def right into the dojo console, it will return a data structure summary, that lists the folloiwng:
+    - number of arms the core has.
+    - its payload, including sample and context.
+
+- When a core definition is encountered by dojo, the following things occur:
+
+1) The entire dojo subject is grabbed for the payload, and put in the RHS of the core tree.
+2) All of the arms are compiled to nock code, and placed in the LHS of the tree.
+
+- **Note:** We never define cores all on their own (without => =/), as they have no subject and are not commited to the dojo tree.
+
+- If you wish to set an empty payload with tis-runes, use **sig ~**
+- Recall that with cores, code is stored as data. When arms are defined and placed in a data tree, they are rendered to **uncomputed nock code** and sit and wait to be called by their face.
+    - compare this to running code expressions with tis-runes - these are **evaluated immediately**.
+
+- We can see the unevaluated nock code, if we choose to reference the code tree with +-notation. For example:
 
 ```
+> => 
+  |%
+  ++  increment-100  .+  100
+  --
+  +2
+
+[4 1 100] 
+```
+- Code Pattern: Define an un-named core, pin a sample:
+```
+=> 
+=+ var=value
 |%
-
-++
-
-++ 
-
+++  a  <expr>
+++  b  <expr>
+..
 --
+<arm expr> 
+```
+
+- Pattern: Define a named core, pin a sample:
+```
+=/  myvar  value
+=/  corename
+|%
+++  a  <expr>
+++  b  <expr>
+..
+--
+<arm>.corename 
+```
+- **The scope of arms:**
+    - arms can reference other arms, even if they reference arms that are defined **later** in the core definition.
+        - you can't make ciruclar dependencies, however.
+    - Arms have access to the cores payload.
+
+- Structural Interpretation of a Named Core:
+    - See the picture below!
+
+    ![structure](./core_structure.png)
+
+### Core Composition, and Core-in-Arms:
+
+- we can compose cores, by placing them into the data payloads of other cores. This is done using tisgar, in a chained fashion.
+
+- Code Example:
 
 ```
+=>
+  |%
+  ++  inner-core-arm  "this arm is in a core in the payload of another core"
+  --
+  =>
+  |%
+  ++  outer-core-arm  "this arm is in the outer core"
+  --
+  inner-core-arm
+
+```
+- **Parsing Code Above:** Note that for the first =>, the first core is child 1, and rest of expression child 2. For second =>, the second core is child 1, and the arm call is child 2. The code structurally looks like the following:
+
+    ![structure](./core_composure.png)
+
+##### Cores in Arms:
+- yet another way to compose is to put the definition of a core, in the expression slot of another arm.
+- Remember: Arms are precompiled to Nock, and sit un-evaluated until called. This means...
+    - That our core-in-arm definition is also sitting in nock notation, uncompiled.
+    - (!!) So our inner core **is not defined** until we run the outer arm, and thus we cannot call the inner arm until we run the outer core arm (!!)
+
+- A two-nested core-in arm example is below. You need to pull and run the outer cores to get to the inner-most arms, essentially.
+
+```
+=>
+|%
+++  outer-core  
+    |%
+    ++  inner-core
+        |%
+        ++  innermost-core  "inside!"
+        --
+    --
+--
+=>  outer-core  =>  inner-core  innermost-core
+```
+
+- Sugar Syntax for the above:  innermost-core:inner-core:outer-core
+
+
+#### Core Modification (after Definition):
 
 - A door is a core with a sample pinned to the head of the subject. We use cencab (|_) to make a door.
+
+
+### Know the Difference! Core and Door Runes:
+
+1) barcen (|%): Creates a core, and defines all of its arms. 
+    - Usage:  `|%  ++ arm1  val  ++ arm2  val ... --`
+    - Will link to the current subject, and use it in building the core.
+    - the values in each arm are set.
+
+
+2) centis (%=):  Will take the arm of a core, and modify its values to alter the core itself.
+    - Usage:  `%-  wing-name  subwing1 val1  subwing2 val2  ==`
+    - Note: A "wing" here is an arm, and a "subwing" is a value in the expression of the arm.
+
+3) barcab (|_): Makes a door.
+    - A **door is a core with a *bunt* sample pinned to the head of a payload**.
+    - A door is considered to be a *special case* of a core.
+    - Usage:  `|_  a=type  ++term1  expr  ++term2  expr ... --  `
+    - **Note:** You can't pin a specific value, only the bunt. You also don't specify the bunt (with *@...), you just specify the type of data.
+    - **Note 2:** Pinning a sample and defining a core is equivalent to using barcab.  `=/ name val  |% $ ...`  == `|_ n=@type  $...`
+
+4) censig (%~): A convinience rune that takes a door, a specified arm, and a sample-value. it modifies the sample value, and then runs the arm with the new value.
+    - Usage:  `%~  arm  doorname  sampval`
+    - Note: Using %= and calling the arm is the same as using %~
+
+
+
+## Week 6:  Gates and Recursive Functions:
+
+#### Some Related Definitions and Distinctions.
+
+- a **Core** is a programming pattern (implemented as a cell and interpreted as a binary tree)with code-as-data (arms) on the LHS, and payload (comprising of sample and context) on the RHS.
+- A **Door** is just a core with a sample pinned to the head.
+- a **Gate** is just a door with one arm (default buc)
+- a **Trap** is a gate with a single buck arm.
+    - add a sample to a Trap, and you get a Gate...
+
+
+- %- is sugar over %~ over the buck arm of a door.
+=/  gth-10
+|= n=@ud
+(gth n 10)
+%-  gth-10  1
+
+equiv to 
+
+=/  gth-10
+||  n=@ud
+...
+...
+...
+
+- sys commands called with |, user defined commands with +.
+
+- if we want our gates to be persistent, we need to define them as a generator. This will store them within the dojo BT for our console session.
+
+=/  n  3
+|%
+++  $
+    ?:  =(n 0)
+        n
+    %=  $
+    n  (sub n 1)
+    ==
+--
+
+This is the function 
+
+function(n):
+    if n = 0:
+        return
+    else:
+        return function(n-1)
 
 ## Residual Questions:
 
@@ -723,3 +935,9 @@ t.starlist
 [NockRules] https://developers.urbit.org/reference/nock/definition
 [krayonnz] https://www.krayonnz.com/user/doubts/detail/612dfdd8e621590040ef25a8/what-is-the-difference-between-subject-and-object-oriented-language
 [SOPwiki] https://en.wikipedia.org/wiki/Subject-oriented_programming
+
+=/  mygate  
+|=  n=@ud
+^-  ?(%.y %.n)
+(gth n 10)
+%~  $  mygate  15

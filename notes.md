@@ -904,27 +904,102 @@ equiv to
 
 - if we want our gates to be persistent, we need to define them as a generator. This will store them within the dojo BT for our console session.
 
-=/  n  3
-|%
-++  $
-    ?:  =(n 0)
-        n
-    %=  $
-    n  (sub n 1)
-    ==
---
+## Week 7: ?
 
-This is the function 
+- Sig is not a null/empty value. It is actually a zero (for @ empty aura)
+- the value for "null" in various context is a "unit"
+-  `unit` is a gate that takes a mold as input, and it returns a mold.
+    - it is a type union of sig or [sig some-mold]
+    - 
 
-function(n):
-    if n = 0:
-        return
-    else:
-        return function(n-1)
+- Maps, or key-value dictionaries are another thing we can use.
+    - the word `my` makes a map, which takes a list of 2ples (key value pairs)
+    - Mould looks like : `(map @t  @ud)`, for example.
+    - ~(put  by colors). Put is an arm of a door, by is a door, and colors are a sample for the doors.
+    - use get if you are not sure something exists. Use got if you know it is there. If you use got on something that doesn't exist,
+    it will crash.
+    - 
 
-## Residual Questions:
+- Sets...
+    - unique representation of items, and is unordered.
 
-- going up in scope: bad programming practice.
+
+- Different Vessels:
+    - Mops, Jugs and Vases...
+
+- Other functional tips:
+    - Currying a binary gate:  (cury mul 10) => mul gate with one input fixed to 10.
+
+- Symbols:
+    - @ generic mold for any atom (single val)
+    - ^  generic mold for any cell
+    - * generic mold for any noun.
+    - ? generic mold for a loobean
+
+- "Say" Generator...
+    - the next level up for writing generators (?).
+    - used for apps, has various meta-data things.
+
+- Make comments with colcol (::).
+
+- Tools...
+- use what-gar to assert that values have certain properties, or crash.
+- use ~& to pretty print outputs, to inspect them.
+
+- you can put cores in library files, and then save library file in the /lib folder of your desk.
+- and import with /+  
+
+- when you do |commit %desk... you can access generators immediately.
+
+- Unit Tests:
+
+- Folders:
+    - sys: contains system folders.
+        - hoon.hoon: all standard utilities (for basic data structures and types.)
+        - Arvo: the basic event loop for the operating system.
+        - zuse: some useful libraries (bitcon, HTML)...
+        - all these composed together give us...our dojo binary tree!
+    - gen: generators
+    - lib: library files
+    - app: files that define gall agents.
+    - sur: linked with apps, apps have structure files
+    - mar: marked file (define file types).
+    - ted: threads.
+    - sys.kelvin: your current version.
+    - desk.bill: tells you all the apps that are installed.
+
+
+
+Production level code: More questions....
+
+
+Background:
+
+Dual undergrad degree in Physics & Applied Math, minor in Econ.
+
+Professionally I've spent the past 10ish years in client-facing technical roles. I'm a sales engineer currently working with various B2B SaaS. I've covered a wide variety of tech--machine vision, industrial automation, software licensing & piracy, NLP, SaaS data analytics, and some others.
+
+I don't code day-to-day and would consider myself a hobbyist programmer. Urbit drew me in because of the concrete opportunity to contribute to something with massive disruptive potential.
+
+Skills/Languages:
+
+Relative to a typical Urbiter my professional experience will differentiate me. My presentation and demo abilities are top notch. My day job also involves managing proof-of-concepts, consultation & education, evaluating technical requirements, etc. Years of handling urgent requests and high stakes interactions means I perform well under pressure. These skills would translate well to a hackathon--especially during crunch time.
+
+I've never held the title of "software engineer" but I have varying degrees of experience in the following languages:
+
+Python, C#, Javascript, Java, C/C++, SQL, Matlab, some others.
+
+Hoon School Live ~2023.3 graduate. I placed 1st in the HSL challenge for style (question 1) and 2nd in speed (question 2). Currently working my way through app school content.
+
+Any Project Ideas:
+
+Since joining the network I've considered exploring reputation systems (ratings, reviews, peer reviewing, etc.), recommendation engines, P2P media sharing, "B2B" apps (user feedback collection, app usage analytics, content collaboration, some others), games.
+
+Otherwise I'm very flexible and would feel privileged to participate in almost any project!
+
+Links:
+
+
 
 - When do we know when to use value vs structure mode.
 - (**) Then: We would not use buc-tis in a value expression, as this could cause confusion for the hoon parser? We place the buc-tis usage on its own line (??).

@@ -12,20 +12,6 @@
 |- (turn mylist dec)
 
 
-:: Implement list traversal using recursion.
-
-=/  numlist  `(list @ud)`~[1 3 5 7 9 2 4 6 8 10]
-=/  llen  (lent numlist)
-=/  i  0
-|-  
-  ?~  numlist
-    i 
-  %=  $
-  i  (add i 1)
-  numlist  t.numlist
-==
-
-
 :: Implement list addition using tail-recursion (!).
 =/  numlist  `(list @ud)`~[1 3 5 7 9 2 4 6 8 10]
 =/  llen  (lent numlist)
@@ -49,45 +35,8 @@
 =/  numlist  `(list @ud)`~[1 3 5 7 9 2 4 6 8 10]
 
 
+:: Random-Access Read for an Array.snag will grab the element in the third position.
+(snag 3 `(list @ud)`~[1 2 3 4])
 
-:: Before we can even code counting sort, there is one major problem that we face with a functional/subject oriented langauge.
-:: How to randomly access elements in an array? How do I pull element 1....j...n from a list with n elements?
-:: Presumably we just have to do a kind of linked-list traversal, and suffer for this. Array data structures need to be jetted
-:: for hoon anyways. So lets code it...
-:: Use the trap . centis coding pattern to do this.
-
-=>
-=/  numlist  `(lest @ud)`~[1 3 5 7 9 2 4 6 8 10]
-=/  llen  (lent numlist)
-=/  i  0
-|%
-++  one  1
-++  two  2
---
-%=  
-
-=>
-=/  numlist  `(lest @ud)`~[1 3 5 7 9 2 4 6 8 10]
-=/  llen  (lent numlist)
-=/  i  0
-  |%
-  ++  $  
-    ?~  numlist  !!
-    ?:  =(i 5)
-      i
-    %=  $
-    i  (add i 1)
-    numlist  t.numlist
-    ==
---
-$
-
-
-  ++  $  
-    ?:  =(i 5)
-      n
-    %=  $
-    i  (add i 1)
-    numlist  (numlist )
-    ==
-
+::Random-Access Write for an Array. Use snap. 
+(snap `(list @ud)`~[1 2 3 4]  3  99)

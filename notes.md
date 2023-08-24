@@ -884,8 +884,8 @@ Cores can be set as the subject, and act on subsets of the full Dojo subject. Ho
 - a **Gate** is just a door with one arm (default buc)
 - a **Trap** is a gate with a single buck arm.
     - add a sample to a Trap, and you get a Gate...
-
-
+- Easy way to remember:
+    - Cores and Doors can have many arms, and gates and traps only have one arm (default $.)
 - %- is sugar over %~ over the buck arm of a door.
 =/  gth-10
 |= n=@ud

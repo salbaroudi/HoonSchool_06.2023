@@ -9,3 +9,11 @@ n ::with first child n
 %=  $ ::second chlid is a call expression on buc arm, with
   n  (dec n) ::...n-1
 ==
+
+
+
+:: Alternative (Sugar Syntax Expression), with no trap.
+|=  n=@ud
+?:  =(n 1)
+  1
+(mul n $(n (dec n)))

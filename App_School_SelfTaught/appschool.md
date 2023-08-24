@@ -42,19 +42,21 @@ To better prepare for the hackathon, I am teaching myself App School. These note
 - Basic Summaries of Arms:
 
 1) State Management: For initing and upgrading an agent.
-    - on-init, on-save, on-load...
+    - on-init:  first-time startup arm.
+    - on-save: envases, produces a vase of the current state.
+    - on-load: unwraps the old vase, makes state changes.
 
 2) Request Handlers:  These handle internet requests.
-    - on-poke:  Handles one-off requests.
-    - on-watch: Handles subscriptions
-    - on-leave: handles un-subscribe actions.
+    - on-poke:  single-instance interaction.
+    - on-watch: standing subscriptions...when the agent sends a message to a group, everyone
+    - on-leave: quit a subscription.
 
 3) Response Handlers: These handle agent responses (info sent back), that our agent receives from making its own requests.
-    - on-agent: Req agknow. and subscription updates from other agents.
-    - on-arvo: Handles vane responses
+    - on-agent: Req agknow. and subscription updates from other agents. Recieve data from another agent.
+    - on-arvo: Handles vane responses, Recieve data from Arvo OS.
 
 4) Skry Handler:
-    - on-peek: local read-only requests (Like IPC?).
+    - on-peek: local read-only requests (Like IPC?). Single time data request
 
 5) Failure Handler: 
     - on-fail: RT error crashing, handles crash reports from Gall.

@@ -1,68 +1,51 @@
 ::Counting Sort Algorithm
 :: Sean al-Baroudi (~nodsup-halnux)
 
-
-:: Steps of the Program.
-:: Input of Matrix: Via Generator Call on Dojo.
-    :: Check input:  not sig, and of type @ud for all elements.
-    :: Get the maximum element in range, check it is less than length of A Array.
-:: If all these tests pass, proceed. Else throw tapes at console and terminate program.
-
-:: Build our C matrix => An array of size 0...k with zeros in each slot.
-
-:: Algorithm:
-    ::Just put everything into one big core to start.
-    :: ++getmaxelem (return @ud)
-    :: ++k<N arm to check (return loobean)
-
-:: Build new Array B and C. 
-
-:: Lets just write a simple outline for our code, for now. Using ~talmut-modnys's caesar.hoon code as a basic structure.
-:: Effectively, we use a gate to accept inputs, and use our =< rune to structure our output cell and mega-core with all 
-:: support code. I'll just write dummy code for arms I don't know how to code yet.
-
+:: Counting Sort Gate. Input: List of whole numbers, including zero.
 |=  [numlist=(list @ud)] 
-=<  :: Better to have top-level code at top, and support cores at the bottom.
+=<  :: Better to have top-level code here, and support cores at the bottom.
 
-    =/  k  (add (getmaxelement numlist) 1)
-    =/  sortlist  (genlist (lent numlist))
-    =/  auxlist  (genlist k)
-    [(sumtrap (tallytrap numlist auxlist) (sub k 1))]
+    =/  k  (getmaxelement numlist) ::K counts the number of unique elements.
+    =/  itest  (inputtest numlist k) ::Just to run an arm that checks for a valid input.
+    =/  auxlist  (genlist (add k 1))  ::Note:  This is our "Array C ".  From 0...k, so add one.
 
-    :: (2) Our core below contains a number of different arms, some with gates inside. All the arms below will assist
-    :: in our top level computation (above).
+    :: (1) Our computation (4 loops in an imperiative algorithm) has been rendered as a bunch of chained arms.
+    (sorttrap numlist (sumtrap (tallytrap numlist auxlist) k))
+
+    :: (2) Our core below contains a number of different arms.All the arms below will assist in our top level computation.
     |%
-    ++  testarm  "This is just a test arm."
-    ++  fetch  |=  [i=@ud ll=(list)]  (snag i ll) ::Fetch an element at position i
-    ++  place  |=  [ll=(list @ud) i=@ elem=@ud]  (snap ll i elem) ::overwrite an element at position i
-    ++  genlist  |=  [n=@ud]  (reap n 0)
-    ++  recursiontest  |=  [n=@ud]
-            =/  index  0
-            |-
-            ~&  index
-            ?:  =(index n)
-            index
-            %=($ index +(index))
+    ++  infoarm  "CountingSort Version %9999K."
+    ++  genlist  |=  [n=@ud]
+        ^-  (list @ud)
+        (reap n 0)
+    ++  inputtest  |=  [nlist=(list @ud) k=@ud]
+            ?:  |(=(k 0) =((lent nlist) 1))  ~&  "Error: Max element is zero, or length of list < 2. Check Input."  !!  "OK"
     ++  getmaxelement  |=  [li=(list @ud)] 
+        ^-  @ud
         =/  k  0
         |-
           ?~  li  k
           ?:  (gte i.li k)  %=  $  k  i.li  li  t.li  ==
           $(li t.li)
     ++  tallytrap  |=  [nlist=(list @ud) alist=(list @ud)]
-            =/  retlist  alist
+        ^-  (list @ud)
             |-
-                ~&  nlist
-                ~&  retlist
-                ?~  nlist  retlist
-                %=  $  retlist  (snap retlist i.nlist (add 1 (snag i.nlist retlist)))  nlist  t.nlist  ==
+                ?~  nlist  alist
+                %=  $  alist  (snap alist i.nlist (add 1 (snag i.nlist alist)))  nlist  t.nlist  ==
     ++  sumtrap  |=  [alist=(list @ud) k=@ud]
-            =/  retlist  alist
+        ^-  (list @ud)
             =/  range  (gulf 1 k)
             |-
-                ~&  range
-                ~&  retlist
-                ?~  range  retlist
-                %=  $  retlist  (snap retlist i.range (add (snag (sub i.range 1) retlist) (snag i.range retlist)))  range  t.range  ==
+                ?~  range   ~&  alist  alist
+                %=  $  alist  (snap alist i.range (add (snag (sub i.range 1) alist) (snag i.range alist)))  range  t.range  ==
+    ++  sorttrap  |=  [nlist=(list @ud) alist=(list @ud)]
+        ^-  (list @ud)
+            =/  revrange  (flop (gulf 0 (sub (lent nlist) 1)))
+            =/  sortlist  (genlist (lent numlist))
+            |-
+                ?~  revrange  (slag 1 sortlist)  :: List from n...1 (reversed)
+                =/  nelem  (snag i.revrange nlist) ::A[i]
+                =/  auxelem  (snag nelem alist) ::C[A[i]]
+                ::~&  "RR:"  ~&  revrange  ~&  "SL:"  ~&  sortlist  ~&  ~&  "nelem:"  nelem  ~&  "aelem:"  ~&  auxelem
+                %=  $  sortlist  (snap sortlist auxelem nelem)  alist  (snap alist nelem (sub auxelem 1))  revrange  t.revrange  ==
     --
-

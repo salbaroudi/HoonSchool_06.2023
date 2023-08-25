@@ -1,6 +1,6 @@
 ## Hoon School Live: Final Challenge:
 
-For my Final Challenge, I attempt to implement a specialized O(n) algorithm called Counting Sort. Given an array of numbers from 1...n, with a range of elements from 0...k (k <= n), we can sort our array in **O(n) time**. Duplicates are permitted, and some numbers within the range may be omitted.
+For HSL 23' Final Challenge, I attempt to implement a specialized O(n) algorithm called Counting Sort. Given an array of numbers from 1...n, with a range of elements from 0...k (k <= n), we can sort our array in **O(n) time**. Duplicates are permitted, and some numbers within the range may be omitted.
 
 The Pseudocode for Counting Sort [1] is Below:
 ```
@@ -30,14 +30,7 @@ CountingSort(A,B,k):
 
 Counting Sort is interesting, in that it uses **no comparisons**, and derives order information from the tallying of elements that appear in our Array C. 
 
-Unfortunately, Hoon does not have random-access read/writes of arrays. As of writing, Hoon only has experimental arrays (not yet merged into standard libraries), and lists are not random access. The time complexity of our Hoon Implementation could actually be as high as O($n^6$) (!!): Rough Proof Sketch:
-
-- Loop 1:  O(n) time
-- Loop 2: O($n^2$) time => because fetching elements in sequence takes  1 + 2 + 3 .... + n = n^2/2 steps
-- Loop 3: O($k^2$)
-- Loop 4: Consider the statement B[C[A[i]]], and for simplicity, assume A B and C all have size 1...n. We must first traverse to position i of A, then A[i] of C, and then C[A[i]] of B. If the traversal of one array in sequence is 1 + 2 + ....n = n^2 / 2, and we have two nested array accesses that have similar performance...with a pathological input, we could end up with a time of O(n^6)
-
-Hoon will need a jet for random-access of arrays to get to O(n).
+Unfortunately, Hoon does not have random-access read/writes of arrays. As of writing, Hoon only has experimental arrays (not yet merged into standard libraries), and lists are not random access. Thus, the time complexity of this implementation is likely O($n^2$) or higher. Hoon will need a jet for random-access of arrays to get to O(n).
 
 ### Conclusions:
 
@@ -57,15 +50,26 @@ This code was done to to try writing an imperative algorithm in functional Hoon 
 |%
 ++ arm1 
 ++ arm2 ...
-++ <...core with many arms, which does most of our computations>
+++ <...core with many arms, 
+which does most of our computations>
 --
 
 ```
 
 
-The algorithm does work and can be improved in-terms of space/time efficiency. However, until arrays become a thing in Hoon...it might best to leave this curious example alone. 
+The algorithm does work and can be improved in-terms of space/time efficiency. However, until arrays become a thing in Hoon...it might best to leave this curious example for now.
+
+### Using Counting Sort:
+
+Simply load countingsort.hoon as a generator on your Desk.  Run:
+
+```
++countingsort  ~[1 2 2 1 3 1 4 5 1 1 2 6 3]
+> ~[1 1 1 1 1 2 2 2 3 3 4 5 6]
+
+```
 
 ### References:
 
 [1] CLRS Introduction to Algorithms, 3rd Edition, Section 8.2 - Counting Sort, pgs 194-196. 
-[2] Thanks to ~talmut-modnys for sharing an algorithm with this programming pattern.
+[2] Programming Pattern comes from ~talmut-modnys' caesar.hoon example. 

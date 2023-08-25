@@ -32,6 +32,17 @@ Counting Sort is interesting, in that it uses **no comparisons**, and derives or
 
 Unfortunately, Hoon does not have random-access read/writes of arrays. As of writing, Hoon only has experimental arrays (not yet merged into standard libraries), and lists are not random access. Thus, the time complexity of this implementation is likely O($n^2$) or higher. Hoon will need a jet for random-access of arrays to get to O(n).
 
+### Using Counting Sort:
+
+Simply load countingsort.hoon as a generator on your Desk.  Run:
+
+```
++countingsort  ~[1 2 2 1 3 1 4 5 1 1 2 6 3]
+> ~[1 1 1 1 1 2 2 2 3 3 4 5 6]
+
+```
+
+
 ### Conclusions:
 
 This code was done to to try writing an imperative algorithm in functional Hoon code.  I learned a basic programming pattern for writing small programs in hoon, which is structured as the following [2]:
@@ -59,17 +70,8 @@ which does most of our computations>
 
 The algorithm does work and can be improved in-terms of space/time efficiency. However, until arrays become a thing in Hoon...it might best to leave this curious example for now.
 
-### Using Counting Sort:
-
-Simply load countingsort.hoon as a generator on your Desk.  Run:
-
-```
-+countingsort  ~[1 2 2 1 3 1 4 5 1 1 2 6 3]
-> ~[1 1 1 1 1 2 2 2 3 3 4 5 6]
-
-```
-
 ### References:
 
 [1] CLRS Introduction to Algorithms, 3rd Edition, Section 8.2 - Counting Sort, pgs 194-196. 
+
 [2] Programming Pattern comes from ~talmut-modnys' caesar.hoon example. 

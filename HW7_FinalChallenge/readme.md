@@ -74,4 +74,4 @@ The algorithm does work and can be improved in-terms of space/time efficiency. H
 
 [1] CLRS Introduction to Algorithms, 3rd Edition, Section 8.2 - Counting Sort, pgs 194-196. 
 
-[2] Programming Pattern comes from ~talmut-modnys' caesar.hoon example. 
+[2] Programming Pattern comes from ~tamlut-modnys' caesar.hoon example. 
